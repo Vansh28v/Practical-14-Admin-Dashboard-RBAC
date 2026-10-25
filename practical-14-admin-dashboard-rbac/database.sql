@@ -1,0 +1,16 @@
+CREATE DATABASE IF NOT EXISTS practical14_admin CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE practical14_admin;
+CREATE TABLE users(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, full_name VARCHAR(120) NOT NULL, email VARCHAR(190) UNIQUE NOT NULL, password_hash VARCHAR(255) NOT NULL, role ENUM('admin','staff','student') NOT NULL DEFAULT 'student', status ENUM('active','inactive') NOT NULL DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE students(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT UNSIGNED NULL, student_name VARCHAR(120) NOT NULL, email VARCHAR(190) NOT NULL, course VARCHAR(100) NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL);
+CREATE TABLE events(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(150) NOT NULL, category VARCHAR(80) NOT NULL DEFAULT 'General', venue VARCHAR(150) NOT NULL DEFAULT 'TBA', event_date DATE NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE registrations(id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT UNSIGNED NULL, student_id INT UNSIGNED NULL, event_id INT UNSIGNED NULL, registration_status ENUM('registered','cancelled','attended') NOT NULL DEFAULT 'registered', registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL, FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE SET NULL, FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE SET NULL);
+CREATE TABLE audit_logs(id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, actor_user_id INT UNSIGNED NULL, action VARCHAR(80) NOT NULL, entity_type VARCHAR(80) NOT NULL, entity_id VARCHAR(80) NULL, details TEXT NULL, ip_address VARCHAR(45) NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, INDEX idx_audit_created_at(created_at), FOREIGN KEY(actor_user_id) REFERENCES users(id) ON DELETE SET NULL);
+-- Demo password for all seeded users: password
+INSERT INTO users(full_name,email,password_hash,role,status) VALUES
+('System Admin','admin@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.','admin','active'),
+('Aarav Patel','aarav@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.','student','active'),
+('Diya Shah','diya@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.','student','active'),
+('Rohan Mehta','rohan@example.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.','staff','inactive');
+INSERT INTO students(user_id,student_name,email,course) VALUES(2,'Aarav Patel','aarav@example.com','Computer Engineering'),(3,'Diya Shah','diya@example.com','Information Technology'),(NULL,'Kavya Desai','kavya@example.com','Computer Engineering'),(NULL,'Ishaan Joshi','ishaan@example.com','Electronics Engineering');
+INSERT INTO events(title,category,venue,event_date) VALUES('TechFest 2026','Technology','Main Auditorium','2026-11-12'),('CodeSprint','Competition','Computer Lab 2','2026-11-18'),('Design Day','Workshop','Seminar Hall','2026-11-25');
+INSERT INTO registrations(user_id,student_id,event_id,registration_status,registered_at) VALUES(2,1,1,'registered',NOW()-INTERVAL 1 DAY),(3,2,1,'registered',NOW()-INTERVAL 2 DAY),(2,1,2,'attended',NOW()-INTERVAL 3 DAY),(3,2,3,'registered',NOW()-INTERVAL 4 DAY);
